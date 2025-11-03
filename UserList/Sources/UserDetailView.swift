@@ -9,13 +9,11 @@ struct UserDetailView: View {
                 pictureUrl: user.picture.large,
                 size: 200
             )
-            
-            VStack(alignment: .leading) {
-                Text("\(user.name.first) \(user.name.last)")
-                    .font(.headline)
-                Text("\(user.dob.date)")
-                    .font(.subheadline)
-            }
+            TextView(
+                firstName: user.name.first,
+                lastName: user.name.last,
+                date: user.dob.date
+            )
             .padding()
             
             Spacer()

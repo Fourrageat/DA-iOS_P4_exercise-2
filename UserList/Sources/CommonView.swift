@@ -25,3 +25,18 @@ struct ImageView: View {
         }
     }
 }
+
+struct TextView: View {
+    let firstName: String
+    let lastName: String
+    let date: String
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("\(firstName) \(lastName)")
+                .font(.headline)
+            Text(date)
+                .font(.subheadline)
+        }
+    }
+}
