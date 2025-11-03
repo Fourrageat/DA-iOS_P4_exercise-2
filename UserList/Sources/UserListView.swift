@@ -26,28 +26,9 @@ struct UserListView: View {
                         }
                     }
                 }
-                .navigationTitle("Users")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Picker(selection: $viewModel.isGridView, label: Text("Display")) {
-                            Image(systemName: "rectangle.grid.1x2.fill")
-                                .tag(true)
-                                .accessibilityLabel(Text("Grid view"))
-                            Image(systemName: "list.bullet")
-                                .tag(false)
-                                .accessibilityLabel(Text("List view"))
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            viewModel.reloadUsers()
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .imageScale(.large)
-                        }
-                    }
-                }
+                .userListToolbar(isGridView: $viewModel.isGridView, onReload: {
+                    viewModel.reloadUsers()
+                })
             } else {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))]) {
@@ -68,33 +49,51 @@ struct UserListView: View {
                         }
                     }
                 }
-                .navigationTitle("Users")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Picker(selection: $viewModel.isGridView, label: Text("Display")) {
-                            Image(systemName: "rectangle.grid.1x2.fill")
-                                .tag(true)
-                                .accessibilityLabel(Text("Grid view"))
-                            Image(systemName: "list.bullet")
-                                .tag(false)
-                                .accessibilityLabel(Text("List view"))
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            viewModel.reloadUsers()
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .imageScale(.large)
-                        }
-                    }
-                }
+                .userListToolbar(isGridView: $viewModel.isGridView, onReload: {
+                    viewModel.reloadUsers()
+                })
             }
         }
         .onAppear {
             viewModel.fetchUsers()
         }
+    }
+}
+
+private struct UserListToolbarModifier: ViewModifier {
+    @Binding var isGridView: Bool
+    let onReload: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+        .navigationTitle("Users")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Picker(selection: $isGridView, label: Text("Display")) {
+                    Image(systemName: "rectangle.grid.1x2.fill")
+                        .tag(true)
+                        .accessibilityLabel(Text("Grid view"))
+                    Image(systemName: "list.bullet")
+                        .tag(false)
+                        .accessibilityLabel(Text("List view"))
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    onReload()
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                        .imageScale(.large)
+                }
+            }
+        }
+    }
+}
+
+private extension View {
+    func userListToolbar(isGridView: Binding<Bool>, onReload: @escaping () -> Void) -> some View {
+        self.modifier(UserListToolbarModifier(isGridView: isGridView, onReload: onReload))
     }
 }
 
