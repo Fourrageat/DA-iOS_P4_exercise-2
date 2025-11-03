@@ -19,6 +19,7 @@
 		2FFB642A2AC6D255007F2F80 /* UserListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFB64292AC6D255007F2F80 /* UserListView.swift */; };
 		2FFB642C2AC6D256007F2F80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FFB642B2AC6D256007F2F80 /* Assets.xcassets */; };
 		F4354BD12EB8BB3900F87AB3 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4354BD02EB8BB3900F87AB3 /* ViewModel.swift */; };
+		F4354BD32EB8E10A00F87AB3 /* CommonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4354BD22EB8E10A00F87AB3 /* CommonView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		2FFB642B2AC6D256007F2F80 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2FFB64342AC6D256007F2F80 /* UserListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UserListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4354BD02EB8BB3900F87AB3 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		F4354BD22EB8E10A00F87AB3 /* CommonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 				2FFB64272AC6D255007F2F80 /* UserListApp.swift */,
 				2FFB64292AC6D255007F2F80 /* UserListView.swift */,
 				2F804AE12ACC976300A46A03 /* UserDetailView.swift */,
+				F4354BD22EB8E10A00F87AB3 /* CommonView.swift */,
 				2FEF0C702ACB45E3004DB87C /* User.swift */,
 				2FEF0C6E2ACB416C004DB87C /* UserListResponse.swift */,
 				2FF9D91E2ACB3DD400F3A6C5 /* UserListRepository.swift */,
@@ -243,6 +246,7 @@
 				F4354BD12EB8BB3900F87AB3 /* ViewModel.swift in Sources */,
 				2F804AE22ACC976300A46A03 /* UserDetailView.swift in Sources */,
 				2FF9D91F2ACB3DD400F3A6C5 /* UserListRepository.swift in Sources */,
+				F4354BD32EB8E10A00F87AB3 /* CommonView.swift in Sources */,
 				2FFB64282AC6D255007F2F80 /* UserListApp.swift in Sources */,
 				2FEF0C712ACB45E3004DB87C /* User.swift in Sources */,
 			);

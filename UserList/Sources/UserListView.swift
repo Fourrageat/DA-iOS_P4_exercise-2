@@ -9,18 +9,10 @@ struct UserListView: View {
                 List(viewModel.users) { user in
                     NavigationLink(destination: UserDetailView(user: user)) {
                         HStack {
-                            AsyncImage(url: URL(string: user.picture.thumbnail)) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(Circle())
-                            } placeholder: {
-                                ProgressView()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(Circle())
-                            }
-                            
+                            ImageView(
+                                pictureUrl: user.picture.thumbnail,
+                                size: 50
+                            )
                             VStack(alignment: .leading) {
                                 Text("\(user.name.first) \(user.name.last)")
                                     .font(.headline)
