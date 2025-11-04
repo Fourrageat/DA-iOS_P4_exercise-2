@@ -4,8 +4,8 @@ import Combine
 final class ViewModel: ObservableObject {
 
     // Outputs
-    @Published private(set) var users: [User] = []
-    @Published private(set) var isLoading: Bool = false
+    @Published var users: [User] = []
+    @Published var isLoading: Bool = false
     @Published var isGridView: Bool = false
 
     // Dependencies
