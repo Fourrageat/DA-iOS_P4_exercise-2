@@ -17,23 +17,25 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         }
     }
 
-    func testFetchUsersHitsNetworkAndPopulatesUsers() async throws {
-        // Repository par défaut = URLSession.shared.data(for:)
+    func testFetchUsers_WhenFetchingUsers_ThenCheckResponse() async throws {
+        
+        // Given
         let viewModel = ViewModel(repository: UserListRepository())
-
-        // Lancement d’un vrai appel réseau
+        
+        // When
         viewModel.fetchUsers(quantity: 5)
-
-        // Attendre la fin du chargement
         try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
+        let user = try XCTUnwrap(viewModel.users[0])
 
-        // Vérifications minimales sur des données réelles
-        XCTAssertGreaterThanOrEqual(viewModel.users.count, 1, "La liste devrait contenir des utilisateurs")
-        // On vérifie que des champs essentiels ne sont pas vides
-        let first = try XCTUnwrap(viewModel.users.first)
-        XCTAssertFalse(first.name.first.isEmpty)
-        XCTAssertFalse(first.name.last.isEmpty)
-        XCTAssertFalse(first.picture.thumbnail.isEmpty)
+        // Then
+        XCTAssertEqual(viewModel.users.count, 5)
+        XCTAssertFalse(user.name.first.isEmpty)
+        XCTAssertFalse(user.name.last.isEmpty)
+        XCTAssertFalse(user.picture.thumbnail.isEmpty)
+        XCTAssertFalse(user.picture.large.isEmpty)
+        XCTAssertFalse(user.picture.medium.isEmpty)
+        XCTAssertFalse(user.dob.age.words.isEmpty)
+        XCTAssertFalse(user.dob.date.isEmpty)
     }
 
     func testReloadUsersClearsThenReloadsFromNetwork() async throws {
