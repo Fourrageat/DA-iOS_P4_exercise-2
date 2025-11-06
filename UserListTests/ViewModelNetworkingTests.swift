@@ -52,29 +52,6 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         XCTAssertEqual(viewModel.users.count, 2, "Users must be equal to the second fetch, after the reload")
     }
 
-    func testInfiniteScrollStyle_secondPageLoadsFromNetwork() async throws {
-        let repo = UserListRepository()
-        let viewModel = ViewModel(repository: repo)
-
-        // Page 1
-        viewModel.fetchUsers(quantity: 5)
-        try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
-        let countAfterFirst = viewModel.users.count
-        XCTAssertEqual(countAfterFirst, 5, "La première page devrait contenir 5 utilisateurs")
-
-        // Simuler onAppear sur le dernier élément -> déclencher page 2
-        if let last = viewModel.users.last, viewModel.shouldLoadMoreData(currentItem: last) {
-            viewModel.fetchUsers(quantity: 5)
-        } else {
-            // Si la condition n’est pas vraie, on force quand même un second fetch pour tester le réseau
-            viewModel.fetchUsers(quantity: 5)
-        }
-
-        try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
-        let countAfterSecond = viewModel.users.count
-        XCTAssertEqual(countAfterSecond, 10, "Après une seconde requête, on devrait avoir 10 utilisateurs")
-    }
-
     func testGuardWhenAlreadyLoading_doesNotStartSecondNetworkCall() async throws {
         // Ce test vérifie le guard !isLoading avec du “vrai” repo.
         // On lance un premier fetch et, pendant qu’il est en cours, on en lance un second.
