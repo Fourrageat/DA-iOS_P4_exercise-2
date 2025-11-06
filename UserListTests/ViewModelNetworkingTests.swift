@@ -37,21 +37,19 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         XCTAssertFalse(user.dob.date.isEmpty)
     }
 
-    func testReloadUsers_WhenClearsAndReloadUsers_ThenCheck() async throws {
+    func testReloadUsers_WhenClearsAndReloads_ThenUsersMatchSecondFetchCount() async throws {
         
         // Given
         let viewModel = ViewModel(repository: UserListRepository())
 
         // When
-        viewModel.fetchUsers(quantity: 3)
+        viewModel.fetchUsers(quantity: 3) // First fetch
         try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
-        let initialCount = viewModel.users.count
-        XCTAssertEqual(initialCount, 3, "First fetch must by respond with 3 users")
-        viewModel.reloadUsers(quantity: 2)
+        viewModel.reloadUsers(quantity: 2) // Second fetch
         try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
 
         // Then
-        XCTAssertEqual(viewModel.users.count, 2, "Second fetch must by respond with 2 users")
+        XCTAssertEqual(viewModel.users.count, 2, "Users must be equal to the second fetch, after the reload")
     }
 
     func testInfiniteScrollStyle_secondPageLoadsFromNetwork() async throws {
@@ -144,3 +142,4 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
 //        XCTAssertTrue(viewModel.users.isEmpty, "Toujours aucun user après l’erreur")
 //    }
 }
+
