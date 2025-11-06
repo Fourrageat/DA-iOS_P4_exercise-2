@@ -16,7 +16,7 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         }
     }
 
-    func testFetchUsers_WhenFetchingUsers_ThenCheckResponse() async throws {
+    func testFetchUsers_WhenSuccess_ThenFieldsNonEmpty() async throws {
         
         // Given
         let viewModel = ViewModel(repository: UserListRepository())
