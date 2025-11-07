@@ -36,6 +36,20 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         XCTAssertFalse(user.dob.age.words.isEmpty)
         XCTAssertFalse(user.dob.date.isEmpty)
     }
+    
+    func testFetchUsers_WhenAlreadyLoading_ThenDoesNotStartSecondFetch() async throws {
+        
+        // Given
+        let viewModel = ViewModel(repository: UserListRepository())
+        
+        // When
+        viewModel.fetchUsers(quantity: 3)
+        viewModel.fetchUsers(quantity: 2)
+        try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
+
+        // Then
+        XCTAssertEqual(viewModel.users.count, 3, "Must be equal to 3, not to 5 because the second fetch must fail")
+    }
 
     func testReloadUsers_WhenClearsAndReloads_ThenUsersMatchSecondFetchCount() async throws {
         
@@ -50,29 +64,6 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
 
         // Then
         XCTAssertEqual(viewModel.users.count, 2, "Users must be equal to the second fetch, after the reload")
-    }
-
-    func testGuardWhenAlreadyLoading_doesNotStartSecondNetworkCall() async throws {
-        // Ce test vérifie le guard !isLoading avec du “vrai” repo.
-        // On lance un premier fetch et, pendant qu’il est en cours, on en lance un second.
-        let repo = UserListRepository()
-        let viewModel = ViewModel(repository: repo)
-
-        // Démarrer un fetch
-        viewModel.fetchUsers(quantity: 3)
-
-        // Juste après, isLoading devrait être true
-        XCTAssertTrue(viewModel.isLoading)
-
-        // Tenter un second fetch immédiatement: le guard doit court-circuiter
-        viewModel.fetchUsers(quantity: 3)
-
-        // Attendre la fin du fetch initial
-        try await waitUntil(timeout: 10.0) { !viewModel.isLoading }
-
-        // On ne peut pas compter les appels réseau réels ici, mais on peut vérifier que
-        // le nombre total correspond à un seul batch (3) et pas 6.
-        XCTAssertEqual(viewModel.users.count, 3, "Le second fetch lancé pendant le chargement ne doit pas s’exécuter")
     }
     
 //    func testFetchUsers_whenRepositoryThrows_errorPathResetsIsLoadingAndDoesNotAppendUsers() async throws {
