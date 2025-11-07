@@ -33,7 +33,7 @@ final class ViewModelNetworkIntegrationTests: XCTestCase {
         XCTAssertFalse(user.picture.thumbnail.isEmpty)
         XCTAssertFalse(user.picture.large.isEmpty)
         XCTAssertFalse(user.picture.medium.isEmpty)
-        XCTAssertFalse(user.dob.age.words.isEmpty)
+        XCTAssertFalse(String(user.dob.age).isEmpty)
         XCTAssertFalse(user.dob.date.isEmpty)
     }
     
