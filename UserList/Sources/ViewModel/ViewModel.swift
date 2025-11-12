@@ -1,7 +1,21 @@
 import Foundation
 import Combine
 
-final class ViewModel: ObservableObject {
+protocol ViewModelType: AnyObject {
+    // Outputs
+    var users: [User] { get }
+    var isLoading: Bool { get }
+    var isGridView: Bool { get set }
+
+    // Inputs
+    func fetchUsers(quantity: Int)
+    func reloadUsers(quantity: Int)
+
+    // Output helper
+    func shouldLoadMoreData(currentItem item: User) -> Bool
+}
+
+final class ViewModel: ObservableObject, ViewModelType {
 
     // Outputs
     @Published var users: [User] = []
