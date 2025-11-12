@@ -74,8 +74,8 @@
 		2FF9D9172ACB3C0B00F3A6C5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				2FFB64272AC6D255007F2F80 /* UserListApp.swift */,
 				F41E2C002EBDF62D00DE745B /* Views */,
+				2FFB64272AC6D255007F2F80 /* UserListApp.swift */,
 				F41E2C042EBDF6EB00DE745B /* Models */,
 				F41E2C052EBDF72B00DE745B /* ViewModel */,
 			);
