@@ -18,9 +18,10 @@
 		2FFB64282AC6D255007F2F80 /* UserListApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFB64272AC6D255007F2F80 /* UserListApp.swift */; };
 		2FFB642A2AC6D255007F2F80 /* UserListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFB64292AC6D255007F2F80 /* UserListView.swift */; };
 		2FFB642C2AC6D256007F2F80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FFB642B2AC6D256007F2F80 /* Assets.xcassets */; };
-		F41E2BF92EBA768600DE745B /* ViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41E2BF82EBA768600DE745B /* ViewModelTests.swift */; };
+		F41E2BF92EBA768600DE745B /* ViewModelIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41E2BF82EBA768600DE745B /* ViewModelIntegrationTests.swift */; };
 		F4354BD12EB8BB3900F87AB3 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4354BD02EB8BB3900F87AB3 /* ViewModel.swift */; };
 		F4354BD32EB8E10A00F87AB3 /* CommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4354BD22EB8E10A00F87AB3 /* CommonViews.swift */; };
+		F4D9D3EE2EC8E7EB00C36C45 /* ViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D9D3ED2EC8E7DB00C36C45 /* ViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,9 +49,10 @@
 		2FFB64292AC6D255007F2F80 /* UserListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserListView.swift; sourceTree = "<group>"; };
 		2FFB642B2AC6D256007F2F80 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2FFB64342AC6D256007F2F80 /* UserListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UserListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F41E2BF82EBA768600DE745B /* ViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelTests.swift; sourceTree = "<group>"; };
+		F41E2BF82EBA768600DE745B /* ViewModelIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelIntegrationTests.swift; sourceTree = "<group>"; };
 		F4354BD02EB8BB3900F87AB3 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		F4354BD22EB8E10A00F87AB3 /* CommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonViews.swift; sourceTree = "<group>"; };
+		F4D9D3ED2EC8E7DB00C36C45 /* ViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,8 +132,9 @@
 		2FFB64372AC6D256007F2F80 /* UserListTests */ = {
 			isa = PBXGroup;
 			children = (
+				F4D9D3ED2EC8E7DB00C36C45 /* ViewModelTests.swift */,
 				2F015BA72ACC938F009A098C /* UserListRepositoryTests.swift */,
-				F41E2BF82EBA768600DE745B /* ViewModelTests.swift */,
+				F41E2BF82EBA768600DE745B /* ViewModelIntegrationTests.swift */,
 				2FB4823B2ACC98DD0016CBA7 /* UserList.xctestplan */,
 			);
 			path = UserListTests;
@@ -299,8 +302,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F41E2BF92EBA768600DE745B /* ViewModelTests.swift in Sources */,
+				F41E2BF92EBA768600DE745B /* ViewModelIntegrationTests.swift in Sources */,
 				2F015BA82ACC938F009A098C /* UserListRepositoryTests.swift in Sources */,
+				F4D9D3EE2EC8E7EB00C36C45 /* ViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
