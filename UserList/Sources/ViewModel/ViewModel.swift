@@ -1,11 +1,14 @@
 import Foundation
 import Combine
 
-protocol ViewModelType: AnyObject {
+protocol ViewModelType {
     // Outputs
     var users: [User] { get }
     var isLoading: Bool { get }
     var isGridView: Bool { get set }
+    var repository: UserListRepositoryType { get }
+    
+    init (repository: UserListRepositoryType)
 
     // Inputs
     func fetchUsers(quantity: Int)
@@ -23,10 +26,10 @@ final class ViewModel: ObservableObject, ViewModelType {
     @Published var isGridView: Bool = false
 
     // Dependencies
-    private let repository: UserListRepository
+    var repository: UserListRepositoryType
 
     // Init
-    init(repository: UserListRepository = UserListRepository()) {
+    init(repository: UserListRepositoryType = UserListRepository()) {
         self.repository = repository
     }
 
