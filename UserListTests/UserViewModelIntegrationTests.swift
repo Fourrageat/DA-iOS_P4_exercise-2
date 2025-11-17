@@ -19,7 +19,7 @@
 //    func testFetchUsers_WhenSuccess_ThenFieldsNonEmpty() async throws {
 //        
 //        // Given
-//        let viewModel = ViewModel(repository: UserListRepository())
+//        let viewModel = UserViewModel(repository: UserListRepository())
 //        
 //        // When
 //        viewModel.fetchUsers(quantity: 5)
@@ -40,7 +40,7 @@
 //    func testFetchUsers_WhenAlreadyLoading_ThenDoesNotStartSecondFetch() async throws {
 //        
 //        // Given
-//        let viewModel = ViewModel(repository: UserListRepository())
+//        let viewModel = UserViewModel(repository: UserListRepository())
 //        
 //        // When
 //        viewModel.fetchUsers(quantity: 3)
@@ -58,7 +58,7 @@
 //        let failingRepo = UserListRepository { _ in
 //            throw DummyError.boom
 //        }
-//        let viewModel = ViewModel(repository: failingRepo)
+//        let viewModel = UserViewModel(repository: failingRepo)
 //
 //        // When
 //        viewModel.fetchUsers(quantity: 3)
@@ -72,7 +72,7 @@
 //    func testReloadUsers_WhenClearsAndReloads_ThenUsersMatchSecondFetchCount() async throws {
 //        
 //        // Given
-//        let viewModel = ViewModel(repository: UserListRepository())
+//        let viewModel = UserViewModel(repository: UserListRepository())
 //
 //        // When
 //        viewModel.fetchUsers(quantity: 3) // First fetch

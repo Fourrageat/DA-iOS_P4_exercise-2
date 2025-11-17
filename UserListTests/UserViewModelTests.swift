@@ -8,7 +8,7 @@
 import XCTest
 @testable import UserList
 
-final class ViewModelUsersTests: XCTestCase {
+final class UserViewModelTests: XCTestCase {
     /**
      Creates a domain `User` from simple values to simplify test setup.
      This helper builds a `UserListResponse.User` (as if returned by the remote API)
@@ -61,15 +61,15 @@ final class ViewModelUsersTests: XCTestCase {
     func testUsersInitiallyEmpty() {
         // Given
         // Create a mock repository configured to return an empty array
-        let repo: UserListRepositoryType = makeRepositoryReturning(users: Array())
+        let repository: UserListRepositoryType = makeRepositoryReturning(users: Array())
         
         // When
         // Instantiate the ViewModel
-        let vm: UserViewModelType = UserViewModel(repository: repo)
+        let viewModel: UserViewModelType = UserViewModel(repository: repository)
         
         // Then
         // Assert the view is empty
-        XCTAssertTrue(vm.users.isEmpty)
+        XCTAssertTrue(viewModel.users.isEmpty)
     }
     
     /**
@@ -79,30 +79,30 @@ final class ViewModelUsersTests: XCTestCase {
     func testFetchUsersPopulatesUsers() async throws {
         // Given
         // Prepare two users that the mock repository will return
-        let u1: User = makeUser(first: "Alice", last: "Smith", age: 35)
-        let u2: User = makeUser(first: "Bob", last: "Jones", age: 28)
-        // Create a mock repository configured to return the two predefined users (u1 and u2)
-        let repo: UserListRepositoryType = makeRepositoryReturning(users: [u1, u2])
+        let user1: User = makeUser(first: "Alice", last: "Smith", age: 35)
+        let user2: User = makeUser(first: "Bob", last: "Jones", age: 28)
+        // Create a mock repository configured to return the two predefined users (user1 and user2)
+        let repository: UserListRepositoryType = makeRepositoryReturning(users: [user1, user2])
         // Instantiate the ViewModel
-        let vm: UserViewModelType = UserViewModel(repository: repo)
+        let viewModel: UserViewModelType = UserViewModel(repository: repository)
 
         // When
         // Trigger the asynchronous fetch of 2 users
-        vm.fetchUsers(quantity: 2)
+        viewModel.fetchUsers(quantity: 2)
         // Wait for the end of the loading (isLoading -> false)
-        try await waitUntil(timeout: 1.0) { !vm.isLoading }
+        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
 
         // Then
         // Assert the number and order of users
-        XCTAssertEqual(vm.users.count, 2)
-        // Assert the u1 data
-        XCTAssertEqual(vm.users[0].name.first, "Alice")
-        XCTAssertEqual(vm.users[0].name.last, "Smith")
-        XCTAssertEqual(vm.users[0].dob.age, 35)
-        // Assert the u2 data
-        XCTAssertEqual(vm.users[1].name.first, "Bob")
-        XCTAssertEqual(vm.users[1].name.last, "Jones")
-        XCTAssertEqual(vm.users[1].dob.age, 28)
+        XCTAssertEqual(viewModel.users.count, 2)
+        // Assert the user1 data
+        XCTAssertEqual(viewModel.users[0].name.first, "Alice")
+        XCTAssertEqual(viewModel.users[0].name.last, "Smith")
+        XCTAssertEqual(viewModel.users[0].dob.age, 35)
+        // Assert the user2 data
+        XCTAssertEqual(viewModel.users[1].name.first, "Bob")
+        XCTAssertEqual(viewModel.users[1].name.last, "Jones")
+        XCTAssertEqual(viewModel.users[1].dob.age, 28)
 
     }
 
@@ -121,7 +121,7 @@ final class ViewModelUsersTests: XCTestCase {
         // On crée un repository simulé (mock) en fournissant une closure qui sera appelée
         // quand la ViewModel demandera des données. Le type attendu est `UserListRepositoryType`,
         // et `UserListRepository` prend en paramètre une closure `(URL) throws -> (Data, URLResponse)`.
-        let repo: UserListRepositoryType = UserListRepository { _ in
+        let repository: UserListRepositoryType = UserListRepository { _ in
             // Le paramètre `_` représente ici l'URL demandée (qu'on ignore volontairement dans ce mock).
             // Dans un vrai repository, on utiliserait cette URL pour construire une requête réseau.
 
@@ -159,64 +159,64 @@ final class ViewModelUsersTests: XCTestCase {
             return (data, URLResponse())
         }
         
-        print("\n[repo] type:", type(of: repo), "description:", String(describing: repo))
+        print("\n[repository] type:", type(of: repository), "description:", String(describing: repository))
 
         // Instantiate the ViewModel
-        let vm: UserViewModelType = UserViewModel(repository: repo)
+        let viewModel: UserViewModelType = UserViewModel(repository: repository)
 
         // 1) Premier fetch: on s'attend à 1 utilisateur
-        vm.fetchUsers(quantity: 1)
-        try await waitUntil(timeout: 1.0) { !vm.isLoading }
-        XCTAssertEqual(vm.users.count, 1)
-        XCTAssertEqual(vm.users[0].name.first, "A")
-        XCTAssertEqual(vm.users[0].dob.age, 1)
+        viewModel.fetchUsers(quantity: 1)
+        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        XCTAssertEqual(viewModel.users.count, 1)
+        XCTAssertEqual(viewModel.users[0].name.first, "A")
+        XCTAssertEqual(viewModel.users[0].dob.age, 1)
 
         // On bascule pour que le prochain appel renvoie la seconde liste
         useNext = true
 
         // 2) Reload: doit vider puis recharger 2 utilisateurs
-        vm.reloadUsers(quantity: 2)
-        try await waitUntil(timeout: 1.0) { !vm.isLoading }
-        XCTAssertEqual(vm.users.count, 2)
-        XCTAssertEqual(vm.users.map { $0.name.first }, ["C", "D"])
-        XCTAssertEqual(vm.users.map { $0.dob.age }, [3, 4])
+        viewModel.reloadUsers(quantity: 2)
+        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        XCTAssertEqual(viewModel.users.count, 2)
+        XCTAssertEqual(viewModel.users.map { $0.name.first }, ["C", "D"])
+        XCTAssertEqual(viewModel.users.map { $0.dob.age }, [3, 4])
 
     }
     
     func testShouldLoadMoreData() async throws {
         // Given: a view model with 3 users already loaded
-        let u1: User = makeUser(first: "Alice", last: "A", age: 30)
-        let u2: User = makeUser(first: "Bob", last: "B", age: 31)
-        let u3: User = makeUser(first: "Carol", last: "C", age: 32)
-        let repo: UserListRepositoryType = makeRepositoryReturning(users: [u1, u2, u3])
-        let vm: UserViewModelType = UserViewModel(repository: repo)
+        let user1: User = makeUser(first: "Alice", last: "A", age: 30)
+        let user2: User = makeUser(first: "Bob", last: "B", age: 31)
+        let user3: User = makeUser(first: "Carol", last: "C", age: 32)
+        let repository: UserListRepositoryType = makeRepositoryReturning(users: [user1, user2, user3])
+        let viewModel: UserViewModelType = UserViewModel(repository: repository)
 
         // When: fetch initial users
-        vm.fetchUsers(quantity: 3)
-        try await waitUntil(timeout: 1.0) { !vm.isLoading }
-        XCTAssertEqual(vm.users.count, 3)
+        viewModel.fetchUsers(quantity: 3)
+        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        XCTAssertEqual(viewModel.users.count, 3)
 
         // Then: should be false when list is empty
         let emptyVM: UserViewModelType = UserViewModel(repository: makeRepositoryReturning(users: []))
-        XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: u1), "No last item when users is empty -> false")
+        XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: user1), "No last item when users is empty -> false")
 
         // Then: false when item is not the last
-        XCTAssertFalse(vm.shouldLoadMoreData(currentItem: vm.users[0]))
-        XCTAssertFalse(vm.shouldLoadMoreData(currentItem: vm.users[1]))
+        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users[0]))
+        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users[1]))
 
         // Then: true when item IS the last and not loading
-        XCTAssertTrue(vm.shouldLoadMoreData(currentItem: vm.users[2]))
+        XCTAssertTrue(viewModel.shouldLoadMoreData(currentItem: viewModel.users[2]))
 
         // Then: false when loading, even if item is the last
         // Simulate a fetch starting (isLoading = true) without awaiting completion
-        vm.fetchUsers(quantity: 1)
+        viewModel.fetchUsers(quantity: 1)
         // Give a tiny moment to ensure isLoading has flipped to true
-        try await waitUntil(timeout: 1.0) { vm.isLoading }
-        XCTAssertTrue(vm.isLoading)
-        XCTAssertFalse(vm.shouldLoadMoreData(currentItem: vm.users.last!), "Must be false while loading")
+        try await waitUntil(timeout: 1.0) { viewModel.isLoading }
+        XCTAssertTrue(viewModel.isLoading)
+        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!), "Must be false while loading")
 
         // Cleanup wait for loading to finish to avoid leaking tasks
-        try await waitUntil(timeout: 1.0) { !vm.isLoading }
+        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
     }
 
     // Petite utilitaire d'attente active: on boucle jusqu'à ce que `condition` soit vraie
