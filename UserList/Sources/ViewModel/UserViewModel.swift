@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-protocol ViewModelType {
+protocol UserViewModelType {
     // Outputs
     var users: [User] { get }
     var isLoading: Bool { get }
@@ -18,7 +18,7 @@ protocol ViewModelType {
     func shouldLoadMoreData(currentItem item: User) -> Bool
 }
 
-final class ViewModel: ObservableObject, ViewModelType {
+final class UserViewModel: ObservableObject, UserViewModelType {
 
     // Outputs
     @Published var users: [User] = []

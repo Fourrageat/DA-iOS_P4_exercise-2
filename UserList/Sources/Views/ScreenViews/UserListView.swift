@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct UserListView: View {
-    @StateObject private var viewModel = ViewModel()
+    @StateObject private var viewModel = UserViewModel()
 
     var body: some View {
         NavigationView {
