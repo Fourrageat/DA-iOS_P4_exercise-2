@@ -141,15 +141,16 @@ final class UserViewModelTests: XCTestCase {
             
             return (data, URLResponse())
         }
-
-        // When
+        
         // Instantiate the ViewModel
         let viewModel: UserViewModelType = UserViewModel(repository: repository)
         
-        // Then
+        // When
         // First fetch using one user (initial because: useNext == false)
         viewModel.fetchUsers(quantity: 1)
         try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        
+        // Then
         // Assert first response
         XCTAssertEqual(viewModel.users.count, 1)
         XCTAssertEqual(viewModel.users[0].name.first, "A")
@@ -157,11 +158,13 @@ final class UserViewModelTests: XCTestCase {
 
         // Switch response
         useNext = true
-
-        // // Secon fetch using 2 users (next because: useNext == true)
+        
+        // When
+        // Secon fetch using 2 users (next because: useNext == true)
         viewModel.reloadUsers(quantity: 2)
         try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
         
+        // Then
         // Assert second response
         XCTAssertEqual(viewModel.users.count, 2)
         XCTAssertEqual(viewModel.users.map { $0.name.first }, ["C", "D"])
@@ -169,6 +172,13 @@ final class UserViewModelTests: XCTestCase {
 
     }
     
+    /**
+     Tests `shouldLoadMoreData(currentItem:)` behavior:
+     - false when the list is empty
+     - false if the item isn’t the last
+     - true if the item is the last and not loading
+     - false if loading, even when the item is the last
+     */
     func testShouldLoadMoreData() async throws {
         // Given: a view model with 3 users already loaded
         let user1: User = makeUser(first: "Alice", last: "A", age: 30)
@@ -184,7 +194,7 @@ final class UserViewModelTests: XCTestCase {
 
         // Then: should be false when list is empty
         let emptyVM: UserViewModelType = UserViewModel(repository: makeRepositoryReturning(users: []))
-        XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: user1), "No last item when users is empty -> false")
+        XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: user1))
 
         // Then: false when item is not the last
         XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users[0]))
@@ -199,19 +209,29 @@ final class UserViewModelTests: XCTestCase {
         // Give a tiny moment to ensure isLoading has flipped to true
         try await waitUntil(timeout: 1.0) { viewModel.isLoading }
         XCTAssertTrue(viewModel.isLoading)
-        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!), "Must be false while loading")
+        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!))
 
         // Cleanup wait for loading to finish to avoid leaking tasks
         try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
     }
 
-    // Petite utilitaire d'attente active: on boucle jusqu'à ce que `condition` soit vraie
-    // ou jusqu'au dépassement du délai `timeout`. On insère un petit sleep pour éviter de
-    // bloquer le thread inutilement.
+    /**
+     Waits until the provided condition becomes true or the timeout elapses.
+     This helper repeatedly polls the `condition` closure at short intervals
+     and returns once it evaluates to `true`. If the timeout is reached before
+     the condition becomes true, the test fails with a timeout message and the
+     function exits.
+
+     - Parameters:
+       - timeout: The maximum time to wait for the condition to become true.
+       - condition: A closure that returns `true` when the awaited state has been reached.
+     - Throws: Rethrows any errors produced by `Task.sleep` cancellation.
+     - Note: This utility is intended for tests that need to wait for async state changes (e.g., `isLoading` toggling) without using expectations.
+     */
     private func waitUntil(timeout: TimeInterval, condition: @escaping @Sendable () -> Bool) async throws {
         let start = Date()
         while !condition() {
-            // On dort 20 ms entre chaque vérification
+            // Sleep 20 ms between check again
             try await Task.sleep(nanoseconds: 20_000_000) // 20 ms
             if Date().timeIntervalSince(start) > timeout {
                 XCTFail("Timeout waiting for condition")
