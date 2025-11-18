@@ -1,11 +1,14 @@
 import Foundation
 import Combine
 
-protocol ViewModelType: AnyObject {
+protocol UserViewModelType {
     // Outputs
     var users: [User] { get }
     var isLoading: Bool { get }
     var isGridView: Bool { get set }
+    var repository: UserListRepositoryType { get }
+    
+    init (repository: UserListRepositoryType)
 
     // Inputs
     func fetchUsers(quantity: Int)
@@ -15,7 +18,7 @@ protocol ViewModelType: AnyObject {
     func shouldLoadMoreData(currentItem item: User) -> Bool
 }
 
-final class ViewModel: ObservableObject, ViewModelType {
+final class UserViewModel: ObservableObject, UserViewModelType {
 
     // Outputs
     @Published var users: [User] = []
@@ -23,10 +26,10 @@ final class ViewModel: ObservableObject, ViewModelType {
     @Published var isGridView: Bool = false
 
     // Dependencies
-    private let repository: UserListRepository
+    var repository: UserListRepositoryType
 
     // Init
-    init(repository: UserListRepository = UserListRepository()) {
+    init(repository: UserListRepositoryType = UserListRepository()) {
         self.repository = repository
     }
 
