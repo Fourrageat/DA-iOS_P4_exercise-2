@@ -111,72 +111,58 @@ final class UserViewModelTests: XCTestCase {
      a new set of users from the repository mock.
      */
     func testReloadUsersClearsThenReloads() async throws {
-        // First response used by the first fetch conteining a list of 1 user
+        // Given
+        // First response used by the first fetch containing a list of 1 user
         let initial: [User] = [makeUser(first: "A", last: "A", age: 1)]
-        // Seconde response used after reload fetch conteining a list of 2 users
+        // Second response used after reload fetch conteining a list of 2 users
         let next: [User] = [makeUser(first: "C", last: "C", age: 3), makeUser(first: "D", last: "D", age: 4)]
 
-        // Ce flag permet de basculer entre la première et la seconde réponse
+        // Switch between initial and second response
         var useNext = false
-        // On crée un repository simulé (mock) en fournissant une closure qui sera appelée
-        // quand la ViewModel demandera des données. Le type attendu est `UserListRepositoryType`,
-        // et `UserListRepository` prend en paramètre une closure `(URL) throws -> (Data, URLResponse)`.
+        
+        // Crete a fake repository escaping the URL expected by UserlistRepository
         let repository: UserListRepositoryType = UserListRepository { _ in
-            // Le paramètre `_` représente ici l'URL demandée (qu'on ignore volontairement dans ce mock).
-            // Dans un vrai repository, on utiliserait cette URL pour construire une requête réseau.
-
-            // Selon le flag `useNext`, on choisit quelle liste d'utilisateurs renvoyer :
-            // - Si `useNext == true`, on prend `next` (la deuxième réponse)
-            // - Sinon, on prend `initial` (la première réponse)
-            //
-            // Ensuite, on appelle `.map { u in ... }` sur ce tableau.
-            // `.map` est une fonction d'ordre supérieur qui itère sur chaque élément du tableau (ici `u`)
-            // et transforme chaque `User` métier en `UserListResponse.User` (le format attendu par l'API).
-            let results = (useNext ? next : initial).map { u in
-                // Pour chaque utilisateur `u`, on construit un `UserListResponse.User`.
-                // Remarquez l'utilisation de `.init(...)` qui est une syntaxe Swift pour appeler l'initialiseur
-                // du type lorsque le type est déduit (ici `UserListResponse.User.Name`, `Dob`, etc.)
+            // Use initial or next array in case of useNext is true or not
+            // and then map into any item contained bay the array,
+            let results = (useNext ? next : initial).map { user in
+                // For each user in the selected array, we build a `UserListResponse.User`
                 UserListResponse.User(
-                    name: .init(title: "Mr", first: u.name.first, last: u.name.last),
-                    dob: .init(date: u.dob.date, age: u.dob.age),
-                    picture: .init(large: u.picture.large, medium: u.picture.medium, thumbnail: u.picture.thumbnail)
+                    name: .init(title: "Mr", first: user.name.first, last: user.name.last),
+                    dob: .init(date: user.dob.date, age: user.dob.age),
+                    picture: .init(
+                        large: user.picture.large,
+                        medium: user.picture.medium,
+                        thumbnail: user.picture.thumbnail
+                    )
                 )
             }
-
-            // On crée l'objet de réponse attendu par l'API: `UserListResponse(results: results)`,
-            // puis on l'encode en `Data` (octets) via `JSONEncoder`.
-            // `JSONEncoder().encode(...)` peut lancer une erreur -> `try` est requis.
-            // Si l'encodage réussit, on obtient un `Data` représentant le JSON.
+            // We create respnse object using results
             let data = try JSONEncoder().encode(UserListResponse(results: results))
-
-            // Debug: on essaye d'afficher le JSON encodé sous forme de String UTF-8 lisible.
-            // `String(data:encoding:)` renvoie un `String?` (optionnel) parce que la conversion peut échouer.
-            // L’opérateur `??` (nil-coalescing) fournit une valeur par défaut si c’est `nil`.
-            print("\n[Tests] Encoded payload string: \(String(data: data, encoding: .utf8) ?? "<non-utf8>")\n")
             
-            // On renvoie un tuple `(Data, URLResponse)` comme si l'appel réseau venait de se terminer.
-            // Ici, `URLResponse()` est une réponse factice minimale (pas d'URL, pas de status code HTTP).
             return (data, URLResponse())
         }
-        
-        print("\n[repository] type:", type(of: repository), "description:", String(describing: repository))
 
+        // When
         // Instantiate the ViewModel
         let viewModel: UserViewModelType = UserViewModel(repository: repository)
-
-        // 1) Premier fetch: on s'attend à 1 utilisateur
+        
+        // Then
+        // First fetch using one user (initial because: useNext == false)
         viewModel.fetchUsers(quantity: 1)
         try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        // Assert first response
         XCTAssertEqual(viewModel.users.count, 1)
         XCTAssertEqual(viewModel.users[0].name.first, "A")
         XCTAssertEqual(viewModel.users[0].dob.age, 1)
 
-        // On bascule pour que le prochain appel renvoie la seconde liste
+        // Switch response
         useNext = true
 
-        // 2) Reload: doit vider puis recharger 2 utilisateurs
+        // // Secon fetch using 2 users (next because: useNext == true)
         viewModel.reloadUsers(quantity: 2)
         try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        
+        // Assert second response
         XCTAssertEqual(viewModel.users.count, 2)
         XCTAssertEqual(viewModel.users.map { $0.name.first }, ["C", "D"])
         XCTAssertEqual(viewModel.users.map { $0.dob.age }, [3, 4])
