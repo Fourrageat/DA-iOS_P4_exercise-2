@@ -5,11 +5,17 @@
 //  Created by Baptiste Fourrageat on 15/11/2025.
 //
 
+// MARK: - Imports
+
 import XCTest
 @testable import UserList
 
+// MARK: - UserViewModelTests
+
 final class UserViewModelTests: XCTestCase {
 
+    // MARK: - Empty state on init
+    
     /// Verifies that, by default, the ViewModel's user list is empty.
     func test_GivenRepositoryReturnsNoUsers_WhenViewModelIsInitialized_ThenUsersIsEmpty() {
         // Given
@@ -24,6 +30,8 @@ final class UserViewModelTests: XCTestCase {
         // Assert the view is empty
         XCTAssertTrue(viewModel.users.isEmpty)
     }
+    
+    // MARK: - fetchUsers appends results
     
     /**
     Verifies that `fetchUsers(quantity:)` starts a loading phase and then populates `users`
@@ -59,6 +67,8 @@ final class UserViewModelTests: XCTestCase {
 
     }
 
+    // MARK: - reloadUsers clears and repopulates
+    
     /**
      Verifies that `reloadUsers(quantity:)` first clears the current list, then fetches
      a new set of users from the repository mock.
@@ -125,6 +135,8 @@ final class UserViewModelTests: XCTestCase {
 
     }
     
+    // MARK: - shouldLoadMoreData logic
+    
     /**
      Tests `shouldLoadMoreData(currentItem:)` behavior:
      - false when the list is empty
@@ -168,6 +180,8 @@ final class UserViewModelTests: XCTestCase {
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
     }
 }
+
+// MARK: - Test Helpers
 
 private struct Helpers {
     /**
@@ -243,3 +257,4 @@ private struct Helpers {
         }
     }
 }
+
