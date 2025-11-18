@@ -9,59 +9,12 @@ import XCTest
 @testable import UserList
 
 final class UserViewModelTests: XCTestCase {
-    /**
-     Creates a domain `User` from simple values to simplify test setup.
-     This helper builds a `UserListResponse.User` (as if returned by the remote API)
-     and converts it into the app's `User` model.
-     
-     - Parameters:
-       - first: The user's first name.
-       - last: The user's last name.
-       - age: The user's age.
-     - Returns: A `User` instance matching the provided values.
-     */
-    private func makeUser(first: String, last: String, age: Int) -> User {
-        // Create a user as returned by the API
-        let apiUser = UserListResponse.User(
-            name: .init(title: "Mr", first: first, last: last),
-            dob: .init(date: "2000-01-01", age: age),
-            picture: .init(large: "l", medium: "m", thumbnail: "t")
-        )
-        // Convert it into the app's `User` model (`User`)
-        return User(user: apiUser)
-    }
-
-    /**
-     Creates a mock `UserListRepositoryType` that always returns the provided users.
-     The mock encodes the given `users` into a `UserListResponse` JSON payload and
-     returns it as `(Data, URLResponse)` regardless of the requested URL.
-     
-     - Parameter users: The list of domain `User` values that the repository should return.
-     - Returns: A repository instance suitable for tests that simulates a successful network response.
-     */
-    private func makeRepositoryReturning(users: [User]) -> UserListRepositoryType {
-        // Prepare the response payload as if it came from the API
-        let payload = UserListResponse(
-            results: users.map { user in
-                UserListResponse.User(
-                    name: .init(title: "Mr", first: user.name.first, last: user.name.last),
-                    dob: .init(date: user.dob.date, age: user.dob.age),
-                    picture: .init(large: user.picture.large, medium: user.picture.medium, thumbnail: user.picture.thumbnail)
-                )
-            }
-        )
-        // The mock repository ignores the URL and always returns the same encoded payload
-        return UserListRepository { _ in
-            let data = try JSONEncoder().encode(payload)
-            return (data, URLResponse())
-        }
-    }
 
     /// Verifies that, by default, the ViewModel's user list is empty.
-    func testUsersInitiallyEmpty() {
+    func test_GivenRepositoryReturnsNoUsers_WhenViewModelIsInitialized_ThenUsersIsEmpty() {
         // Given
         // Create a mock repository configured to return an empty array
-        let repository: UserListRepositoryType = makeRepositoryReturning(users: Array())
+        let repository: UserListRepositoryType = Helpers.makeRepositoryReturning(users: Array())
         
         // When
         // Instantiate the ViewModel
@@ -73,16 +26,16 @@ final class UserViewModelTests: XCTestCase {
     }
     
     /**
-    Vérifie que `fetchUsers(quantity:)` déclenche un chargement puis peuple `users` avec
-    les résultats renvoyés par le repository simulé.
+    Verifies that `fetchUsers(quantity:)` starts a loading phase and then populates `users`
+    with the results returned by the mocked repository.
      */
-    func testFetchUsersPopulatesUsers() async throws {
+    func test_GivenRepositoryReturnsTwoUsers_WhenFetchingQuantityTwo_ThenUsersAreAppendedCorrectly() async throws {
         // Given
         // Prepare two users that the mock repository will return
-        let user1: User = makeUser(first: "Alice", last: "Smith", age: 35)
-        let user2: User = makeUser(first: "Bob", last: "Jones", age: 28)
+        let user1: User = Helpers.makeUser(first: "Alice", last: "Smith", age: 35)
+        let user2: User = Helpers.makeUser(first: "Bob", last: "Jones", age: 28)
         // Create a mock repository configured to return the two predefined users (user1 and user2)
-        let repository: UserListRepositoryType = makeRepositoryReturning(users: [user1, user2])
+        let repository: UserListRepositoryType = Helpers.makeRepositoryReturning(users: [user1, user2])
         // Instantiate the ViewModel
         let viewModel: UserViewModelType = UserViewModel(repository: repository)
 
@@ -90,7 +43,7 @@ final class UserViewModelTests: XCTestCase {
         // Trigger the asynchronous fetch of 2 users
         viewModel.fetchUsers(quantity: 2)
         // Wait for the end of the loading (isLoading -> false)
-        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
 
         // Then
         // Assert the number and order of users
@@ -110,12 +63,12 @@ final class UserViewModelTests: XCTestCase {
      Verifies that `reloadUsers(quantity:)` first clears the current list, then fetches
      a new set of users from the repository mock.
      */
-    func testReloadUsersClearsThenReloads() async throws {
+    func test_GivenInitialUsers_WhenReloadingWithNewResponse_ThenListIsClearedAndRepopulated() async throws {
         // Given
         // First response used by the first fetch containing a list of 1 user
-        let initial: [User] = [makeUser(first: "A", last: "A", age: 1)]
+        let initial: [User] = [Helpers.makeUser(first: "A", last: "A", age: 1)]
         // Second response used after reload fetch conteining a list of 2 users
-        let next: [User] = [makeUser(first: "C", last: "C", age: 3), makeUser(first: "D", last: "D", age: 4)]
+        let next: [User] = [Helpers.makeUser(first: "C", last: "C", age: 3), Helpers.makeUser(first: "D", last: "D", age: 4)]
 
         // Switch between initial and second response
         var useNext = false
@@ -148,7 +101,7 @@ final class UserViewModelTests: XCTestCase {
         // When
         // First fetch using one user (initial because: useNext == false)
         viewModel.fetchUsers(quantity: 1)
-        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         
         // Then
         // Assert first response
@@ -162,7 +115,7 @@ final class UserViewModelTests: XCTestCase {
         // When
         // Secon fetch using 2 users (next because: useNext == true)
         viewModel.reloadUsers(quantity: 2)
-        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         
         // Then
         // Assert second response
@@ -179,21 +132,21 @@ final class UserViewModelTests: XCTestCase {
      - true if the item is the last and not loading
      - false if loading, even when the item is the last
      */
-    func testShouldLoadMoreData() async throws {
+    func test_GivenListAndLoading_WhenCheckingShouldLoadMoreData_ThenReturnsExpected() async throws {
         // Given: a view model with 3 users already loaded
-        let user1: User = makeUser(first: "Alice", last: "A", age: 30)
-        let user2: User = makeUser(first: "Bob", last: "B", age: 31)
-        let user3: User = makeUser(first: "Carol", last: "C", age: 32)
-        let repository: UserListRepositoryType = makeRepositoryReturning(users: [user1, user2, user3])
+        let user1: User = Helpers.makeUser(first: "Alice", last: "A", age: 30)
+        let user2: User = Helpers.makeUser(first: "Bob", last: "B", age: 31)
+        let user3: User = Helpers.makeUser(first: "Carol", last: "C", age: 32)
+        let repository: UserListRepositoryType = Helpers.makeRepositoryReturning(users: [user1, user2, user3])
         let viewModel: UserViewModelType = UserViewModel(repository: repository)
 
         // When: fetch initial users
         viewModel.fetchUsers(quantity: 3)
-        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         XCTAssertEqual(viewModel.users.count, 3)
 
         // Then: should be false when list is empty
-        let emptyVM: UserViewModelType = UserViewModel(repository: makeRepositoryReturning(users: []))
+        let emptyVM: UserViewModelType = UserViewModel(repository: Helpers.makeRepositoryReturning(users: []))
         XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: user1))
 
         // Then: false when item is not the last
@@ -207,12 +160,62 @@ final class UserViewModelTests: XCTestCase {
         // Simulate a fetch starting (isLoading = true) without awaiting completion
         viewModel.fetchUsers(quantity: 1)
         // Give a tiny moment to ensure isLoading has flipped to true
-        try await waitUntil(timeout: 1.0) { viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { viewModel.isLoading }
         XCTAssertTrue(viewModel.isLoading)
         XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!))
 
         // Cleanup wait for loading to finish to avoid leaking tasks
-        try await waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
+    }
+}
+
+private struct Helpers {
+    /**
+     Creates a domain `User` from simple values to simplify test setup.
+     This helper builds a `UserListResponse.User` (as if returned by the remote API)
+     and converts it into the app's `User` model.
+     
+     - Parameters:
+       - first: The user's first name.
+       - last: The user's last name.
+       - age: The user's age.
+     - Returns: A `User` instance matching the provided values.
+     */
+    static func makeUser(first: String, last: String, age: Int) -> User {
+        // Create a user as returned by the API
+        let apiUser = UserListResponse.User(
+            name: .init(title: "Mr", first: first, last: last),
+            dob: .init(date: "2000-01-01", age: age),
+            picture: .init(large: "l", medium: "m", thumbnail: "t")
+        )
+        // Convert it into the app's `User` model (`User`)
+        return User(user: apiUser)
+    }
+
+    /**
+     Creates a mock `UserListRepositoryType` that always returns the provided users.
+     The mock encodes the given `users` into a `UserListResponse` JSON payload and
+     returns it as `(Data, URLResponse)` regardless of the requested URL.
+     
+     - Parameter users: The list of domain `User` values that the repository should return.
+     - Returns: A repository instance suitable for tests that simulates a successful network response.
+     */
+    static func makeRepositoryReturning(users: [User]) -> UserListRepositoryType {
+        // Prepare the response payload as if it came from the API
+        let payload = UserListResponse(
+            results: users.map { user in
+                UserListResponse.User(
+                    name: .init(title: "Mr", first: user.name.first, last: user.name.last),
+                    dob: .init(date: user.dob.date, age: user.dob.age),
+                    picture: .init(large: user.picture.large, medium: user.picture.medium, thumbnail: user.picture.thumbnail)
+                )
+            }
+        )
+        // The mock repository ignores the URL and always returns the same encoded payload
+        return UserListRepository { _ in
+            let data = try JSONEncoder().encode(payload)
+            return (data, URLResponse())
+        }
     }
 
     /**
@@ -228,7 +231,7 @@ final class UserViewModelTests: XCTestCase {
      - Throws: Rethrows any errors produced by `Task.sleep` cancellation.
      - Note: This utility is intended for tests that need to wait for async state changes (e.g., `isLoading` toggling) without using expectations.
      */
-    private func waitUntil(timeout: TimeInterval, condition: @escaping @Sendable () -> Bool) async throws {
+    static func waitUntil(timeout: TimeInterval, condition: @escaping @Sendable () -> Bool) async throws {
         let start = Date()
         while !condition() {
             // Sleep 20 ms between check again
@@ -240,4 +243,3 @@ final class UserViewModelTests: XCTestCase {
         }
     }
 }
-
