@@ -22,12 +22,20 @@ struct UserListView: View {
                     }
                     .onAppear {
                         if viewModel.shouldLoadMoreData(currentItem: user) {
-                            viewModel.fetchUsers()
+                            Task {
+                                do {
+                                    try await viewModel.fetchUsers()
+                                } catch {
+                                    print("Failed to fetch users:", error)
+                                }
+                            }
                         }
                     }
                 }
                 .userListToolbar(isGridView: $viewModel.isGridView, onReload: {
-                    viewModel.reloadUsers()
+                    Task {
+                        await viewModel.reloadUsers()
+                    }
                 })
             } else {
                 ScrollView {
@@ -43,19 +51,33 @@ struct UserListView: View {
                             }
                             .onAppear {
                                 if viewModel.shouldLoadMoreData(currentItem: user) {
-                                    viewModel.fetchUsers()
+                                    Task {
+                                        do {
+                                            try await viewModel.fetchUsers()
+                                        } catch {
+                                            print("Failed to fetch users:", error)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 .userListToolbar(isGridView: $viewModel.isGridView, onReload: {
-                    viewModel.reloadUsers()
+                    Task {
+                        await viewModel.reloadUsers()
+                    }
                 })
             }
         }
         .onAppear {
-            viewModel.fetchUsers()
+            Task {
+                do {
+                    try await viewModel.fetchUsers()
+                } catch {
+                    print("Failed to fetch users:", error)
+                }
+            }
         }
     }
 }
