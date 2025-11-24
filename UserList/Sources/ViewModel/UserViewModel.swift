@@ -1,29 +1,13 @@
 import Foundation
 import Combine
 
-protocol UserViewModelType {
-    // Outputs
-    var users: [User] { get }
-    var isLoading: Bool { get }
-    var isGridView: Bool { get set }
-    var repository: UserListRepositoryType { get }
-    
-    init (repository: UserListRepositoryType)
-
-    // Inputs
-    func fetchUsers(quantity: Int)
-    func reloadUsers(quantity: Int)
-
-    // Output helper
-    func shouldLoadMoreData(currentItem item: User) -> Bool
-}
-
-final class UserViewModel: ObservableObject, UserViewModelType {
+final class UserViewModel: ObservableObject {
 
     // Outputs
     @Published var users: [User] = []
     @Published var isLoading: Bool = false
     @Published var isGridView: Bool = false
+    @Published var lastError: Error?
 
     // Dependencies
     var repository: UserListRepositoryType
@@ -34,25 +18,32 @@ final class UserViewModel: ObservableObject, UserViewModelType {
     }
 
     // Inputs
-    func fetchUsers(quantity: Int = 20) {
+    func fetchUsers(quantity: Int = 20) async throws {
         guard !isLoading else { return }
+        lastError = nil
         isLoading = true
-        Task {
-            do {
-                let newUsers = try await repository.fetchUsers(quantity: quantity)
-                self.users.append(contentsOf: newUsers)
-                self.isLoading = false
-            } catch {
-                // Vous pouvez exposer une erreur publiée si besoin
-                self.isLoading = false
-                print("Error fetching users: \(error.localizedDescription)")
-            }
+        defer { isLoading = false }
+
+        do {
+            let newUsers = try await repository.fetchUsers(quantity: quantity)
+            self.users.append(contentsOf: newUsers)
+        } catch {
+            self.lastError = error
+            print("Error fetching users: \(error.localizedDescription)")
+            throw error
         }
     }
 
-    func reloadUsers(quantity: Int = 20) {
+    func reloadUsers(quantity: Int = 20) async {
+        lastError = nil
         users.removeAll()
-        fetchUsers(quantity: quantity)
+        
+        do {
+            try await fetchUsers(quantity: quantity)
+        } catch {
+            self.lastError = error
+            print("Error reloading users: \(error.localizedDescription)")
+        }
     }
 
     // Output helper
@@ -61,3 +52,4 @@ final class UserViewModel: ObservableObject, UserViewModelType {
         return !isLoading && item.id == lastItem.id
     }
 }
+

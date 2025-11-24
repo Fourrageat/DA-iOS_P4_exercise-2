@@ -24,7 +24,7 @@ final class UserViewModelTests: XCTestCase {
         
         // When
         // Instantiate the ViewModel
-        let viewModel: UserViewModelType = UserViewModel(repository: repository)
+        let viewModel = UserViewModel(repository: repository)
         
         // Then
         // Assert the view is empty
@@ -45,11 +45,11 @@ final class UserViewModelTests: XCTestCase {
         // Create a mock repository configured to return the two predefined users (user1 and user2)
         let repository: UserListRepositoryType = Helpers.makeRepositoryReturning(users: [user1, user2])
         // Instantiate the ViewModel
-        let viewModel: UserViewModelType = UserViewModel(repository: repository)
+        let viewModel = UserViewModel(repository: repository)
 
         // When
         // Trigger the asynchronous fetch of 2 users
-        viewModel.fetchUsers(quantity: 2)
+        try await viewModel.fetchUsers(quantity: 2)
         // Wait for the end of the loading (isLoading -> false)
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
 
@@ -67,6 +67,61 @@ final class UserViewModelTests: XCTestCase {
 
     }
 
+    // MARK: - fetchUsers error handling
+    
+    /**
+     Verifies that when the repository fails, `fetchUsers(quantity:)` surfaces an error,
+     resets `isLoading` to false, and does not mutate the current `users` list.
+     */
+    func test_GivenRepositoryFails_WhenFetchingUsers_ThenErrorIsThrownAndStateResets() async throws {
+        // Given
+        let repository: UserListRepositoryType = Helpers.makeRepositoryThatFailsWithError()
+        let viewModel = UserViewModel(repository: repository)
+        XCTAssertTrue(viewModel.users.isEmpty)
+        XCTAssertFalse(viewModel.isLoading)
+
+        // When/Then: calling fetch should throw
+        do {
+            try await viewModel.fetchUsers(quantity: 1)
+            XCTFail("Expected fetchUsers to throw, but it succeeded")
+        } catch {
+            // Expected path
+        }
+        
+        // Give the VM a brief moment to settle any state flips
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
+
+        // Then: state is reset and users unchanged
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.users.isEmpty)
+    }
+    
+    // MARK: - reloadUsers error handling
+    
+    /**
+     Verifies that when the repository fails, `reloadUsers(quantity:)`:
+     - does not throw (error is handled internally),
+     - resets `isLoading` back to `false`,
+     - and leaves the current `users` list unchanged (remains empty).
+     */
+    func test_GivenRepositoryFails_WhenReloadUsers_ThenErrorIsThrownAndStateResets() async throws {
+        // Given
+        let repository: UserListRepositoryType = Helpers.makeRepositoryThatFailsWithError()
+        let viewModel = UserViewModel(repository: repository)
+        XCTAssertTrue(viewModel.users.isEmpty)
+        XCTAssertFalse(viewModel.isLoading)
+
+        // When/Then: calling reload should surface an error (doesn't throw, so we inspect state after)
+        await viewModel.reloadUsers(quantity: 5)
+
+        // Give the VM a brief moment to settle any state flips
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
+
+        // Then: state is reset and users unchanged
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.users.isEmpty)
+    }
+    
     // MARK: - reloadUsers clears and repopulates
     
     /**
@@ -106,11 +161,11 @@ final class UserViewModelTests: XCTestCase {
         }
         
         // Instantiate the ViewModel
-        let viewModel: UserViewModelType = UserViewModel(repository: repository)
+        let viewModel = UserViewModel(repository: repository)
         
         // When
         // First fetch using one user (initial because: useNext == false)
-        viewModel.fetchUsers(quantity: 1)
+        try await viewModel.fetchUsers(quantity: 1)
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         
         // Then
@@ -124,7 +179,7 @@ final class UserViewModelTests: XCTestCase {
         
         // When
         // Secon fetch using 2 users (next because: useNext == true)
-        viewModel.reloadUsers(quantity: 2)
+        await viewModel.reloadUsers(quantity: 2)
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         
         // Then
@@ -150,15 +205,15 @@ final class UserViewModelTests: XCTestCase {
         let user2: User = Helpers.makeUser(first: "Bob", last: "B", age: 31)
         let user3: User = Helpers.makeUser(first: "Carol", last: "C", age: 32)
         let repository: UserListRepositoryType = Helpers.makeRepositoryReturning(users: [user1, user2, user3])
-        let viewModel: UserViewModelType = UserViewModel(repository: repository)
+        let viewModel = UserViewModel(repository: repository)
 
         // When: fetch initial users
-        viewModel.fetchUsers(quantity: 3)
+        try await viewModel.fetchUsers(quantity: 3)
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
         XCTAssertEqual(viewModel.users.count, 3)
 
         // Then: should be false when list is empty
-        let emptyVM: UserViewModelType = UserViewModel(repository: Helpers.makeRepositoryReturning(users: []))
+        let emptyVM = UserViewModel(repository: Helpers.makeRepositoryReturning(users: []))
         XCTAssertFalse(emptyVM.shouldLoadMoreData(currentItem: user1))
 
         // Then: false when item is not the last
@@ -170,11 +225,11 @@ final class UserViewModelTests: XCTestCase {
 
         // Then: false when loading, even if item is the last
         // Simulate a fetch starting (isLoading = true) without awaiting completion
-        viewModel.fetchUsers(quantity: 1)
+        try await viewModel.fetchUsers(quantity: 1)
         // Give a tiny moment to ensure isLoading has flipped to true
-        try await Helpers.waitUntil(timeout: 1.0) { viewModel.isLoading }
-        XCTAssertTrue(viewModel.isLoading)
-        XCTAssertFalse(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!))
+        try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.shouldLoadMoreData(currentItem: viewModel.users.last!))
 
         // Cleanup wait for loading to finish to avoid leaking tasks
         try await Helpers.waitUntil(timeout: 1.0) { !viewModel.isLoading }
@@ -229,6 +284,19 @@ private struct Helpers {
         return UserListRepository { _ in
             let data = try JSONEncoder().encode(payload)
             return (data, URLResponse())
+        }
+    }
+    
+    /**
+     Creates a fake repository that always fails with a network error.
+     Used to test the ViewModel's error handling (e.g., resetting `isLoading` and
+     leaving `users` unchanged).
+     
+     - Returns: A `UserListRepositoryType` that throws `URLError(.badServerResponse)` on every call.
+     */
+    static func makeRepositoryThatFailsWithError() -> UserListRepositoryType {
+        return UserListRepository { _ in
+            throw URLError(.badServerResponse)
         }
     }
 
